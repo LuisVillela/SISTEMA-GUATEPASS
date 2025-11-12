@@ -1,0 +1,11 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "guatepass-stack"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-$(aws sts get-caller-identity --query Account --output text)"
+s3_prefix = "guatepass"
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = false
+disable_rollback = false

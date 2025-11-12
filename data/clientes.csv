@@ -1,0 +1,9 @@
+placa,nombre,email,telefono,tipo_usuario,tiene_tag,tag_id,saldo_disponible
+P-123ABC,Juan Pérez,juan@email.com,50212345678,registrado,true,TAG-001,100.00
+P-456DEF,María López,maria@email.com,50298765432,registrado,true,TAG-002,250.00
+P-789GHI,Carlos Ruiz,,,no_registrado,false,,0.00
+P-111JKL,Ana Torres,ana@email.com,50245678901,registrado,false,,75.00
+P-222MNO,Luis García,,50267890123,no_registrado,false,,0.00
+P-333PQR,Sofia Morales,sofia@email.com,50256781234,registrado,true,TAG-003,150.00
+P-444STU,Pedro Hernandez,pedro@email.com,50234567890,registrado,false,,50.00
+P-555VWX,Elena Castro,,,no_registrado,false,,0.00

@@ -1,0 +1,167 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Description: Sistema GuatePass - Cobro automatizado de peajes
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - prod
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 30
+    MemorySize: 128
+    Environment:
+      Variables:
+        ENVIRONMENT: !Ref Environment
+
+Resources:
+  # ==================== DYNAMO DB TABLES ====================
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "guatepass-users-${Environment}"
+      AttributeDefinitions:
+        - AttributeName: placa
+          AttributeType: S
+      KeySchema:
+        - AttributeName: placa
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
+
+  TransactionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "guatepass-transactions-${Environment}"
+      AttributeDefinitions:
+        - AttributeName: transaction_id
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: transaction_id
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+
+  TagsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "guatepass-tags-${Environment}"
+      AttributeDefinitions:
+        - AttributeName: tag_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: tag_id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  # ==================== SQS QUEUES ====================
+  ProcessingQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "guatepass-processing-${Environment}"
+      VisibilityTimeout: 300
+      MessageRetentionPeriod: 1209600
+
+  # ==================== SNS TOPICS ====================
+  NotificationsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "guatepass-notifications-${Environment}"
+
+  # ==================== LAMBDA FUNCTIONS ====================
+  WebhookValidatorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "webhook-validator-${Environment}"
+      CodeUri: src/functions/webhook/
+      Handler: app.lambda_handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UsersTable
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt ProcessingQueue.QueueName
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+          TRANSACTIONS_TABLE: !Ref TransactionsTable
+          TAGS_TABLE: !Ref TagsTable
+          PROCESSING_QUEUE_URL: !Ref ProcessingQueue
+      Events:
+        Webhook:
+          Type: Api
+          Properties:
+            Path: /webhook/toll
+            Method: post
+            RestApiId: !Ref GuatePassApi
+
+  TransactionProcessorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "transaction-processor-${Environment}"
+      CodeUri: src/functions/processor/
+      Handler: app.lambda_handler
+      Events:
+        QueueEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt ProcessingQueue.Arn
+            BatchSize: 1
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TransactionsTable
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt NotificationsTopic.TopicName
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+          TRANSACTIONS_TABLE: !Ref TransactionsTable
+          TAGS_TABLE: !Ref TagsTable
+          NOTIFICATIONS_TOPIC_ARN: !Ref NotificationsTopic
+
+  NotificationHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "notification-handler-${Environment}"
+      CodeUri: src/functions/notifier/
+      Handler: app.lambda_handler
+      Events:
+        NotificationEvent:
+          Type: SNS
+          Properties:
+            Topic: !Ref NotificationsTopic
+      Environment:
+        Variables:
+          TRANSACTIONS_TABLE: !Ref TransactionsTable
+
+  # ==================== API GATEWAY ====================
+  GuatePassApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Environment
+      Cors: 
+        AllowMethods: "'*'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
+
+Outputs:
+  ApiUrl:
+    Description: "API Gateway URL"
+    Value: !Sub "https://${GuatePassApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"
+  WebhookUrl:
+    Description: "Webhook endpoint URL"
+    Value: !Sub "https://${GuatePassApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/webhook/toll"
+  CloudWatchDashboard:
+    Description: "CloudWatch Dashboard URL"
+    Value: !Sub "https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=guatepass-dashboard-${Environment}"
