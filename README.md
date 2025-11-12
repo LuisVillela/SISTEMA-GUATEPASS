@@ -25,3 +25,12 @@ python scripts/verify_data.py
 
 TEST DE WEBHOOK
 ./scripts/test_webhook.sh
+
+
+VERIFICAR PROCESSOR
+sleep 120
+./scripts/test_webhook.sh
+./scripts/verify_processor.sh
+sleep 45
+python scripts/check_transactions.py
+
