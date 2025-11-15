@@ -86,14 +86,14 @@ Resources:
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref UsersTable
-        - DynamoDBReadPolicy:  # ← AGREGAR ESTO PARA TAGS
+        - DynamoDBReadPolicy:
             TableName: !Ref TagsTable
         - SQSSendMessagePolicy:
             QueueName: !GetAtt ProcessingQueue.QueueName
       Environment:
         Variables:
           USERS_TABLE: !Ref UsersTable
-          TAGS_TABLE: !Ref TagsTable  # ← AGREGAR ESTA VARIABLE
+          TAGS_TABLE: !Ref TagsTable
           PROCESSING_QUEUE_URL: !Ref ProcessingQueue
       Events:
         Webhook:
@@ -120,7 +120,7 @@ Resources:
             TableName: !Ref UsersTable
         - DynamoDBCrudPolicy:
             TableName: !Ref TransactionsTable
-        - DynamoDBCrudPolicy:  # ← AGREGAR ESTO PARA TAGS
+        - DynamoDBCrudPolicy:
             TableName: !Ref TagsTable
         - SNSPublishMessagePolicy:
             TopicName: !GetAtt NotificationsTopic.TopicName
@@ -128,23 +128,48 @@ Resources:
         Variables:
           USERS_TABLE: !Ref UsersTable
           TRANSACTIONS_TABLE: !Ref TransactionsTable
-          TAGS_TABLE: !Ref TagsTable  # ← AGREGAR ESTA VARIABLE
+          TAGS_TABLE: !Ref TagsTable
           NOTIFICATIONS_TOPIC_ARN: !Ref NotificationsTopic
 
-  NotificationHandlerFunction:
+  PaymentHistoryFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "notification-handler-${Environment}"
-      CodeUri: src/functions/notifier/
+      FunctionName: !Sub "payment-history-${Environment}"
+      CodeUri: src/functions/history/
       Handler: app.lambda_handler
-      Events:
-        NotificationEvent:
-          Type: SNS
-          Properties:
-            Topic: !Ref NotificationsTopic
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref TransactionsTable
       Environment:
         Variables:
           TRANSACTIONS_TABLE: !Ref TransactionsTable
+      Events:
+        PaymentHistory:
+          Type: Api
+          Properties:
+            Path: /history/payments/{placa}
+            Method: get
+            RestApiId: !Ref GuatePassApi
+
+  InvoiceHistoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "invoice-history-${Environment}"
+      CodeUri: src/functions/invoices/
+      Handler: app.lambda_handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref TransactionsTable
+      Environment:
+        Variables:
+          TRANSACTIONS_TABLE: !Ref TransactionsTable
+      Events:
+        InvoiceHistory:
+          Type: Api
+          Properties:
+            Path: /history/invoices/{placa}
+            Method: get
+            RestApiId: !Ref GuatePassApi
 
   # ==================== API GATEWAY ====================
   GuatePassApi:
@@ -155,6 +180,7 @@ Resources:
         AllowMethods: "'*'"
         AllowHeaders: "'*'"
         AllowOrigin: "'*'"
+        
 
 Outputs:
   ApiUrl:
@@ -163,6 +189,3 @@ Outputs:
   WebhookUrl:
     Description: "Webhook endpoint URL"
     Value: !Sub "https://${GuatePassApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/webhook/toll"
-  CloudWatchDashboard:
-    Description: "CloudWatch Dashboard URL"
-    Value: !Sub "https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=guatepass-dashboard-${Environment}"
