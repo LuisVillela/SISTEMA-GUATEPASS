@@ -35,3 +35,13 @@ sleep 120
 sleep 45
 python scripts/check_transactions.py
 
+
+CORRER TODO
+sam build
+sam deploy --guided
+    Stack Name: guatepass-stack
+    AWS Region: us-east-1
+    Confirm changes: Y
+python tests/test_all.py (correr tests de los 3 modulos diferentes)
+python scripts/create_dashboard.py (crear dashboards)
+python scripts/verify_monitoring.py (verificar creación de dashboards)
