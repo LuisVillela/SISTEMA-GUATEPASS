@@ -11,13 +11,13 @@ def lambda_handler(event, context):
     """
     Lambda function que procesa notificaciones de SNS y simula envio de emails/SMS
     """
-    logger.info(f"Evento SNS recibido: {json.dumps(event)}")
+    logger.info("Evento SNS recibido: %s", json.dumps(event))
     
     try:
         for record in event.get('Records', []):
             if record.get('EventSource') == 'aws:sns':
                 message = json.loads(record['Sns']['Message'])
-                logger.info(f"Procesando notificacion: {message.get('placa')}")
+                logger.info("Procesando notificacion: %s", message.get('placa'))
                 process_notification(message)
         
         logger.info("Todas las notificaciones procesadas exitosamente")
@@ -27,7 +27,7 @@ def lambda_handler(event, context):
         }
         
     except Exception as e:
-        logger.error(f"Error procesando notificacion: {str(e)}")
+        logger.error("Error procesando notificacion: %s", str(e))
         return {
             'statusCode': 500,
             'body': json.dumps({'error': 'Internal server error'})
@@ -46,7 +46,7 @@ def process_notification(notification_data):
     resultado = notification_data.get('resultado', {})
     peaje_id = notification_data.get('peaje_id')
     
-    logger.info(f"Procesando: {placa} - {escenario} - Email: {email} - Tel: {telefono}")
+    logger.info("Procesando: %s - %s - Email: %s - Tel: %s", placa, escenario, email, telefono)
     
     if escenario == 'no_registrado_tradicional':
         send_invoice_notification(placa, email, telefono, monto, resultado, peaje_id)
@@ -56,7 +56,7 @@ def process_notification(notification_data):
         else:
             send_payment_failed_notification(placa, email, telefono, monto, resultado, peaje_id)
     else:
-        logger.warning(f"Escenario no reconocido: {escenario}")
+        logger.warning("Escenario no reconocido: %s", escenario)
 
 def send_invoice_notification(placa, email, telefono, monto, resultado, peaje_id):
     """
@@ -65,13 +65,19 @@ def send_invoice_notification(placa, email, telefono, monto, resultado, peaje_id
     factura = resultado.get('factura', {})
     factura_id = factura.get('factura_id', 'N/A')
     
+    # Convertir monto a float si es string, o usar directamente
+    try:
+        monto_float = float(monto) if monto else 0.0
+    except (ValueError, TypeError):
+        monto_float = 0.0
+    
     invoice_message = f"""
     FACTURA GUATEPASS - {factura_id}
     
     Detalles de la Factura:
     - Placa del vehiculo: {placa}
     - Peaje: {peaje_id}
-    - Monto total: Q{monto:.2f}
+    - Monto total: Q{monto_float:.2f}
     - Tarifa base: {factura.get('cargo_premium', 'Incluye 50% recargo')}
     - Multa por no registro: {factura.get('multa_tardia', 'Q15.00')}
     - Fecha de emision: {factura.get('fecha_emision', datetime.now().isoformat())}
@@ -97,19 +103,19 @@ def send_invoice_notification(placa, email, telefono, monto, resultado, peaje_id
     """
     
     if email:
-        logger.info(f"[EMAIL SIMULADO] Para: {email}")
-        logger.info(f"[FACTURA] Asunto: Factura GuatePass {factura_id} - Placa {placa}")
-        logger.info(f"[CONTENIDO]: {invoice_message}")
-        logger.info(f"[INVITACION] Asunto: Evite recargos - Registrese en GuatePass")
-        logger.info(f"[CONTENIDO]: {invitation_message}")
+        logger.info("[EMAIL SIMULADO] Para: %s", email)
+        logger.info("[FACTURA] Asunto: Factura GuatePass %s - Placa %s", factura_id, placa)
+        logger.info("[CONTENIDO FACTURA]: %s", invoice_message)
+        logger.info("[INVITACION] Asunto: Evite recargos - Registrese en GuatePass")
+        logger.info("[CONTENIDO INVITACION]: %s", invitation_message)
     
     if telefono:
-        sms_factura = f"FACTURA {factura_id}: Q{monto:.2f} pendiente. Placa: {placa}. GuatePass"
-        sms_invitacion = f"Registre {placa} en GuatePass y ahorre hasta 60%. Evite recargos."
+        sms_factura = "FACTURA %s: Q%s pendiente. Placa: %s. GuatePass" % (factura_id, monto, placa)
+        sms_invitacion = "Registre %s en GuatePass y ahorre hasta 60%%. Evite recargos." % placa
         
-        logger.info(f"[SMS SIMULADO] Para: {telefono}")
-        logger.info(f"[FACTURA]: {sms_factura}")
-        logger.info(f"[INVITACION]: {sms_invitacion}")
+        logger.info("[SMS SIMULADO] Para: %s", telefono)
+        logger.info("[FACTURA SMS]: %s", sms_factura)
+        logger.info("[INVITACION SMS]: %s", sms_invitacion)
 
 def send_payment_success_notification(placa, email, telefono, monto, escenario, resultado, peaje_id):
     """
@@ -119,45 +125,53 @@ def send_payment_success_notification(placa, email, telefono, monto, escenario, 
     metodo_pago = pago_info.get('metodo_pago', 'tarjeta')
     codigo_autorizacion = pago_info.get('codigo_autorizacion', 'N/A')
     
+    # Convertir monto a float si es string
+    try:
+        monto_float = float(monto) if monto else 0.0
+    except (ValueError, TypeError):
+        monto_float = 0.0
+    
     if escenario == 'tag_express':
-        message = f"""
+        message = """
         COBRO EXPRESS EXITOSO - GUATEPASS
         
-        Placa: {placa}
-        Peaje: {peaje_id}
-        Monto: Q{monto:.2f}
-        Metodo: {metodo_pago}
-        Autorizacion: {codigo_autorizacion}
+        Placa: %s
+        Peaje: %s
+        Monto: Q%s
+        Metodo: %s
+        Autorizacion: %s
         Tipo: Cobro Express con Tag
-        Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+        Fecha: %s
         
         Gracias por usar GuatePass!
-        """
-        sms_message = f"Cobro express exitoso: Q{monto:.2f} - Peaje {peaje_id} - Auth: {codigo_autorizacion}"
+        """ % (placa, peaje_id, monto, metodo_pago, codigo_autorizacion, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        
+        sms_message = "Cobro express exitoso: Q%s - Peaje %s - Auth: %s" % (monto, peaje_id, codigo_autorizacion)
     else:
-        message = f"""
+        message = """
         PAGO EXITOSO - GUATEPASS
         
-        Placa: {placa}
-        Peaje: {peaje_id}
-        Monto: Q{monto:.2f}
-        Metodo: {metodo_pago}
-        Autorizacion: {codigo_autorizacion}
+        Placa: %s
+        Peaje: %s
+        Monto: Q%s
+        Metodo: %s
+        Autorizacion: %s
         Tipo: Cobro Digital
-        Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+        Fecha: %s
         
         Gracias por usar GuatePass!
-        """
-        sms_message = f"Pago exitoso: Q{monto:.2f} - Peaje {peaje_id} - Auth: {codigo_autorizacion}"
+        """ % (placa, peaje_id, monto, metodo_pago, codigo_autorizacion, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        
+        sms_message = "Pago exitoso: Q%s - Peaje %s - Auth: %s" % (monto, peaje_id, codigo_autorizacion)
     
     if email:
-        logger.info(f"[EMAIL SIMULADO] Para: {email}")
-        logger.info(f"[PAGO EXITOSO] Asunto: Pago exitoso - Placa {placa}")
-        logger.info(f"[CONTENIDO]: {message}")
+        logger.info("[EMAIL SIMULADO] Para: %s", email)
+        logger.info("[PAGO EXITOSO] Asunto: Pago exitoso - Placa %s", placa)
+        logger.info("[CONTENIDO PAGO EXITOSO]: %s", message)
     
     if telefono:
-        logger.info(f"[SMS SIMULADO] Para: {telefono}")
-        logger.info(f"[PAGO EXITOSO]: {sms_message}")
+        logger.info("[SMS SIMULADO] Para: %s", telefono)
+        logger.info("[PAGO EXITOSO SMS]: %s", sms_message)
 
 def send_payment_failed_notification(placa, email, telefono, monto, resultado, peaje_id):
     """
@@ -166,14 +180,14 @@ def send_payment_failed_notification(placa, email, telefono, monto, resultado, p
     pago_info = resultado.get('pago', {})
     error_msg = pago_info.get('error', 'Error en el procesamiento del pago')
     
-    message = f"""
+    message = """
     PAGO FALLIDO - GUATEPASS
     
-    Placa: {placa}
-    Peaje: {peaje_id}
-    Monto intentado: Q{monto:.2f}
-    Error: {error_msg}
-    Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+    Placa: %s
+    Peaje: %s
+    Monto intentado: Q%s
+    Error: %s
+    Fecha: %s
     
     Acciones requeridas:
     1. Verifique los fondos en su metodo de pago
@@ -181,15 +195,15 @@ def send_payment_failed_notification(placa, email, telefono, monto, resultado, p
     3. Contacte a su banco si el problema persiste
     
     Si no soluciona este problema, su vehiculo puede ser reportado.
-    """
+    """ % (placa, peaje_id, monto, error_msg, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     
-    sms_message = f"PAGO FALLIDO: Q{monto:.2f} - {error_msg}. Actualice metodo de pago."
+    sms_message = "PAGO FALLIDO: Q%s - %s. Actualice metodo de pago." % (monto, error_msg)
     
     if email:
-        logger.info(f"[EMAIL SIMULADO] Para: {email}")
-        logger.info(f"[PAGO FALLIDO] Asunto: Pago fallido - Accion requerida - Placa {placa}")
-        logger.info(f"[CONTENIDO]: {message}")
+        logger.info("[EMAIL SIMULADO] Para: %s", email)
+        logger.info("[PAGO FALLIDO] Asunto: Pago fallido - Accion requerida - Placa %s", placa)
+        logger.info("[CONTENIDO PAGO FALLIDO]: %s", message)
     
     if telefono:
-        logger.info(f"[SMS SIMULADO] Para: {telefono}")
-        logger.info(f"[PAGO FALLIDO]: {sms_message}")
+        logger.info("[SMS SIMULADO] Para: %s", telefono)
+        logger.info("[PAGO FALLIDO SMS]: %s", sms_message)

@@ -1,7 +1,7 @@
 placa,nombre,email,telefono,tipo_usuario,tiene_tag,tag_id,metodo_pago
 P-123ABC,Juan Pérez,juan@email.com,50212345678,registrado,false,,tarjeta_credito
 P-456DEF,María López,maria@email.com,50298765432,registrado,true,TAG-001,tarjeta_debito
-P-789GHI,Carlos Ruiz,,,no_registrado,false,,,
+P-789GHI,Carlos Ruiz,,50266458799,no_registrado,false,,,
 P-111JKL,Ana Torres,ana@email.com,50245678901,registrado,false,,tarjeta_credito
 P-222MNO,Luis García,,50267890123,no_registrado,false,,,
 P-333PQR,Sofia Morales,sofia@email.com,50256781234,registrado,true,TAG-002,tarjeta_debito
