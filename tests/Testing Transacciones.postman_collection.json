@@ -1,0 +1,99 @@
+{
+	"info": {
+		"_postman_id": "e1576597-1ecb-464f-bbc4-3b34e111a89c",
+		"name": "Testing Transacciones",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30151602"
+	},
+	"item": [
+		{
+			"name": "Historial de Pagos",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://ha1qf5gwvl.execute-api.us-east-1.amazonaws.com/dev/history/payments/P-456DEF",
+					"protocol": "https",
+					"host": [
+						"ha1qf5gwvl",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"dev",
+						"history",
+						"payments",
+						"P-456DEF"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Historial de Facturas",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://ha1qf5gwvl.execute-api.us-east-1.amazonaws.com/dev/history/invoices/P-789GHI",
+					"protocol": "https",
+					"host": [
+						"ha1qf5gwvl",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"dev",
+						"history",
+						"invoices",
+						"P-789GHI"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Webhook Peaje",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"placa\": \"P-789GHI\",\r\n    \"peaje_id\": \"PEAJE_ZONA10\",\r\n    \"tag_id\": \"TAG-001\",\r\n    \"timestamp\": \"2025-11-14T10:30:00Z\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://ha1qf5gwvl.execute-api.us-east-1.amazonaws.com/dev/webhook/toll",
+					"protocol": "https",
+					"host": [
+						"ha1qf5gwvl",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"dev",
+						"webhook",
+						"toll"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://postman-echo.com"
+		}
+	]
+}

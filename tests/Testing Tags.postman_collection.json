@@ -1,0 +1,143 @@
+{
+	"info": {
+		"_postman_id": "746f8bae-0abb-4c93-82b0-95db13ad81b9",
+		"name": "Testing Tags",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30151602"
+	},
+	"item": [
+		{
+			"name": "Consultar Información del Tag",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://ha1qf5gwvl.execute-api.us-east-1.amazonaws.com/dev/users/P-456DEF/tag",
+					"protocol": "https",
+					"host": [
+						"ha1qf5gwvl",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"dev",
+						"users",
+						"P-456DEF",
+						"tag"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Asociar Tag a Vehículo",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"tag_id\": \"TAG-004\",\r\n    \"metodo_pago\": \"tarjeta_credito\",\r\n    \"configuracion\": {\r\n        \"notificaciones\": true,\r\n        \"cobro_automatico\": true\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://ha1qf5gwvl.execute-api.us-east-1.amazonaws.com/dev/users/P-123ABC/tag",
+					"protocol": "https",
+					"host": [
+						"ha1qf5gwvl",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"dev",
+						"users",
+						"P-123ABC",
+						"tag"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Actualizar Configuración del Tag",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"configuracion\": {\r\n        \"notificaciones\": false,\r\n        \"cobro_automatico\": true\r\n    },\r\n    \"metodo_pago\": \"tarjeta_debito\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://ha1qf5gwvl.execute-api.us-east-1.amazonaws.com/dev/users/P-456DEF/tag",
+					"protocol": "https",
+					"host": [
+						"ha1qf5gwvl",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"dev",
+						"users",
+						"P-456DEF",
+						"tag"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Desasociar Tag",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"razon\": \"Cambio de vehiculo\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://ha1qf5gwvl.execute-api.us-east-1.amazonaws.com/dev/users/P-456DEF/tag",
+					"protocol": "https",
+					"host": [
+						"ha1qf5gwvl",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"dev",
+						"users",
+						"P-456DEF",
+						"tag"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://postman-echo.com"
+		}
+	]
+}
