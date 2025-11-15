@@ -49,7 +49,7 @@ def load_initial_data():
                     'tipo_usuario': row['tipo_usuario'].strip(),
                     'tiene_tag': row['tiene_tag'].strip().lower() == 'true',
                     'tag_id': row['tag_id'].strip() if row['tag_id'].strip() else None,
-                    'saldo_disponible': saldo  # Usando Decimal en lugar de float
+                    'metodo_pago' : row['metodo_pago'].strip() if row['metodo_pago'].strip() else None,
                 }
                 
                 # Insertar en DynamoDB

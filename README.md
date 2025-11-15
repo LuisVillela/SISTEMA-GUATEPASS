@@ -3,6 +3,7 @@
 IMPORTANTE TENER PERMISOS DE IAM PARA CREAR ROLES (MEJOR TENER PERMISOS DE TODO POR SI ACASO)
 Construir
 sam build
+NECESITA PYTHON 3.12
 
 Deployear
 sam deploy --guided
@@ -16,11 +17,11 @@ API_URL=$(aws cloudformation describe-stacks --stack-name guatepass-stack --quer
 echo "API URL: $API_URL"
 
 CARGAR DATA
-python scripts/verify_data.py
+python scripts/load_initial_data.py
+python scripts/populate_tags.py
 
 VERIFICAR QUE SE HAYAN SUBIDO
 python scripts/verify_data.py
-
 
 
 TEST DE WEBHOOK

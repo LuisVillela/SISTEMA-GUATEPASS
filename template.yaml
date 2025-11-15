@@ -33,8 +33,6 @@ Resources:
         - AttributeName: placa
           KeyType: HASH
       BillingMode: PAY_PER_REQUEST
-      StreamSpecification:
-        StreamViewType: NEW_IMAGE
 
   TransactionsTable:
     Type: AWS::DynamoDB::Table
@@ -88,13 +86,14 @@ Resources:
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref UsersTable
+        - DynamoDBReadPolicy:  # ← AGREGAR ESTO PARA TAGS
+            TableName: !Ref TagsTable
         - SQSSendMessagePolicy:
             QueueName: !GetAtt ProcessingQueue.QueueName
       Environment:
         Variables:
           USERS_TABLE: !Ref UsersTable
-          TRANSACTIONS_TABLE: !Ref TransactionsTable
-          TAGS_TABLE: !Ref TagsTable
+          TAGS_TABLE: !Ref TagsTable  # ← AGREGAR ESTA VARIABLE
           PROCESSING_QUEUE_URL: !Ref ProcessingQueue
       Events:
         Webhook:
@@ -121,13 +120,15 @@ Resources:
             TableName: !Ref UsersTable
         - DynamoDBCrudPolicy:
             TableName: !Ref TransactionsTable
+        - DynamoDBCrudPolicy:  # ← AGREGAR ESTO PARA TAGS
+            TableName: !Ref TagsTable
         - SNSPublishMessagePolicy:
             TopicName: !GetAtt NotificationsTopic.TopicName
       Environment:
         Variables:
           USERS_TABLE: !Ref UsersTable
           TRANSACTIONS_TABLE: !Ref TransactionsTable
-          TAGS_TABLE: !Ref TagsTable
+          TAGS_TABLE: !Ref TagsTable  # ← AGREGAR ESTA VARIABLE
           NOTIFICATIONS_TOPIC_ARN: !Ref NotificationsTopic
 
   NotificationHandlerFunction:
