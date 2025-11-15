@@ -171,6 +171,64 @@ Resources:
             Method: get
             RestApiId: !Ref GuatePassApi
 
+  # ==================== TAGS MANAGEMENT FUNCTIONS ====================
+  TagsManagementFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "tags-management-${Environment}"
+      CodeUri: src/functions/tags/
+      Handler: app.lambda_handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TagsTable
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+          TAGS_TABLE: !Ref TagsTable
+      Events:
+        AssociateTag:
+          Type: Api
+          Properties:
+            Path: /users/{placa}/tag
+            Method: post
+            RestApiId: !Ref GuatePassApi
+        GetTag:
+          Type: Api
+          Properties:
+            Path: /users/{placa}/tag
+            Method: get
+            RestApiId: !Ref GuatePassApi
+        UpdateTag:
+          Type: Api
+          Properties:
+            Path: /users/{placa}/tag
+            Method: put
+            RestApiId: !Ref GuatePassApi
+        DeleteTag:
+          Type: Api
+          Properties:
+            Path: /users/{placa}/tag
+            Method: delete
+            RestApiId: !Ref GuatePassApi
+
+  # ==================== NOTIFICATION HANDLER ====================
+  NotificationHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "notification-handler-${Environment}"
+      CodeUri: src/functions/notifier/
+      Handler: app.lambda_handler
+      Events:
+        NotificationEvent:
+          Type: SNS
+          Properties:
+            Topic: !Ref NotificationsTopic
+      Environment:
+        Variables:
+          TRANSACTIONS_TABLE: !Ref TransactionsTable
+
   # ==================== API GATEWAY ====================
   GuatePassApi:
     Type: AWS::Serverless::Api
@@ -180,7 +238,6 @@ Resources:
         AllowMethods: "'*'"
         AllowHeaders: "'*'"
         AllowOrigin: "'*'"
-        
 
 Outputs:
   ApiUrl:
@@ -189,3 +246,6 @@ Outputs:
   WebhookUrl:
     Description: "Webhook endpoint URL"
     Value: !Sub "https://${GuatePassApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/webhook/toll"
+  CloudWatchDashboard:
+    Description: "CloudWatch Dashboard URL"
+    Value: !Sub "https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=guatepass-dashboard-${Environment}"

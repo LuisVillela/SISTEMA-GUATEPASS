@@ -55,6 +55,11 @@ def associate_tag(event, placa):
     except Exception as e:
         print(f"Error checking tag: {e}")
     
+    # Verificar que el usuario existe
+    user_response = users_table.get_item(Key={'placa': placa})
+    if 'Item' not in user_response:
+        return error_response(404, "USER_NOT_FOUND", "Usuario no encontrado")
+    
     # Crear registro del tag
     tag_item = {
         'tag_id': tag_id,
