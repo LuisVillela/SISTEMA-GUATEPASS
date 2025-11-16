@@ -43,11 +43,6 @@ class GuatePassTester:
         # Verificar en base de datos
         self.verify_transaction_in_db("P-789GHI", "no_registrado_tradicional")
         
-        print("RESULTADOS ESPERADOS:")
-        print("- Debe generar una FACTURA con recargo premium")
-        print("- Debe enviar invitacion a registro por correo/SMS")
-        print("- No debe realizar cobro a tarjeta")
-        print("- Debe guardarse como tipo 'no_registrado_tradicional'")
         print("=" * 70)
         
     def test_scenario_2_registrado_digital(self):
@@ -81,13 +76,7 @@ class GuatePassTester:
         
         # Verificar en base de datos
         self.verify_transaction_in_db("P-123ABC", "registrado_digital")
-        
-        print("RESULTADOS ESPERADOS:")
-        print("- Debe realizar cobro a tarjeta de credito/debito")
-        print("- Debe enviar notificacion de pago exitoso")
-        print("- No debe generar factura")
-        print("- Debe guardarse como tipo 'registrado_digital'")
-        print("- Monto debe ser tarifa normal (sin recargos)")
+
         print("=" * 70)
         
     def test_scenario_3_tag_express(self):
@@ -123,12 +112,6 @@ class GuatePassTester:
         # Verificar en base de datos
         self.verify_transaction_in_db("P-456DEF", "tag_express")
         
-        print("RESULTADOS ESPERADOS:")
-        print("- Debe aplicar descuento del 10% por tag")
-        print("- Debe usar metodo de pago configurado en el tag")
-        print("- Debe ser procesamiento mas rapido (express)")
-        print("- Debe enviar notificacion de cobro express")
-        print("- Debe guardarse como tipo 'tag_express'")
         print("=" * 70)
         
     def test_scenario_4_pago_fallido(self):
@@ -168,15 +151,11 @@ class GuatePassTester:
             
             if not pago_exitoso:
                 print("PAGO FALLIDO DETECTADO - Comportamiento correcto")
-                print("RESULTADOS ESPERADOS:")
-                print("- Debe enviar notificacion de pago fallido")
-                print("- Debe indicar error en el resultado")
-                print("- No debe generar factura")
             else:
                 print("PAGO EXITOSO - Comportamiento normal")
         else:
             print("No se encontraron transacciones para verificar")
-            
+
         print("=" * 70)
     
     def verify_transaction_in_db(self, placa, expected_scenario):
