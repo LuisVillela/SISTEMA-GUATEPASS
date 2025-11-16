@@ -134,3 +134,200 @@ Obtiene el historial de facturas generadas para vehículos no registrados.
 ```
 
 ---
+
+# Endpoints de Gestión de Tags
+
+## 4. POST `/users/{placa}/tag`
+
+**Descripción:**
+Asocia un tag físico a un vehículo registrado.
+
+### Path Parameters
+
+* **placa** *(string)*
+
+### Request
+
+```json
+{
+    "tag_id": "TAG-003",
+    "metodo_pago": "tarjeta_credito",
+    "configuracion": {
+        "notificaciones": true,
+        "cobro_automatico": true
+    }
+}
+```
+
+### Campos
+
+* **tag_id** *(string, requerido)*
+* **metodo_pago** *(string, opcional)* — `tarjeta_credito`, `tarjeta_debito`
+* **configuracion** *(object, opcional)*
+
+### Response (200 OK)
+
+```json
+{
+    "message": "Tag asociado exitosamente",
+    "tag": {
+        "tag_id": "TAG-003",
+        "placa": "P-123ABC",
+        "estado": "activo",
+        "fecha_activacion": "2025-01-20T10:35:00Z",
+        "metodo_pago": "tarjeta_credito",
+        "configuracion": {
+            "notificaciones": true,
+            "cobro_automatico": true
+        }
+    }
+}
+```
+
+### Response (400 Bad Request)
+
+```json
+{
+    "error": {
+        "code": "TAG_IN_USE",
+        "message": "Tag ID already in use"
+    }
+}
+```
+
+---
+
+## 5. GET `/users/{placa}/tag`
+
+**Descripción:**
+Consulta la información del tag asociado a un vehículo.
+
+### Response (200 OK)
+
+```json
+{
+    "placa": "P-456DEF",
+    "tag_info": {
+        "tag_id": "TAG-001",
+        "placa": "P-456DEF",
+        "estado": "activo",
+        "fecha_activacion": "2025-01-15T00:00:00Z",
+        "metodo_pago": "tarjeta_debito",
+        "configuracion": {
+            "notificaciones": true,
+            "cobro_automatico": true
+        }
+    }
+}
+```
+
+### Response (200 OK - Usuario sin tag)
+
+```json
+{
+    "placa": "P-123ABC",
+    "tiene_tag": false,
+    "message": "El usuario no tiene tag asociado"
+}
+```
+
+---
+
+## 6. PUT `/users/{placa}/tag`
+
+**Descripción:**
+Actualiza la configuración del tag asociado.
+
+### Request
+
+```json
+{
+    "configuracion": {
+        "notificaciones": false,
+        "cobro_automatico": true
+    },
+    "metodo_pago": "tarjeta_debito"
+}
+```
+
+### Response (200 OK)
+
+```json
+{
+    "message": "Tag actualizado exitosamente",
+    "tag": {
+        "tag_id": "TAG-001",
+        "placa": "P-456DEF",
+        "configuracion": {
+            "notificaciones": false,
+            "cobro_automatico": true
+        },
+        "metodo_pago": "tarjeta_debito"
+    }
+}
+```
+
+### Response (400 Bad Request)
+
+```json
+{
+    "error": {
+        "code": "NO_TAG_ASSOCIATED",
+        "message": "El usuario no tiene tag asociado"
+    }
+}
+```
+
+---
+
+## 7. DELETE `/users/{placa}/tag`
+
+**Descripción:**
+Desasocia un tag de un vehículo.
+
+### Request
+
+```json
+{
+    "razon": "Cambio de vehiculo"
+}
+```
+
+### Response (200 OK)
+
+```json
+{
+    "message": "Tag desasociado exitosamente",
+    "placa": "P-456DEF",
+    "tag_id": "TAG-001",
+    "razon": "Cambio de vehiculo"
+}
+```
+
+### Response (400 Bad Request)
+
+```json
+{
+    "error": {
+        "code": "NO_TAG_ASSOCIATED",
+        "message": "El usuario no tiene tag asociado"
+    }
+}
+```
+
+---
+
+# Códigos de Error Comunes
+
+| Código                | HTTP Status | Descripción                      |
+| --------------------- | ----------- | -------------------------------- |
+| **VALIDATION_ERROR**  | 400         | Error en validación de datos     |
+| **MISSING_PLACA**     | 400         | Parámetro `placa` requerido      |
+| **INVALID_PLACA**     | 400         | Formato de placa inválido        |
+| **TAG_IN_USE**        | 400         | El tag ya está en uso            |
+| **USER_NOT_FOUND**    | 404         | Usuario no encontrado            |
+| **TAG_NOT_FOUND**     | 404         | Tag no encontrado                |
+| **NO_TAG_ASSOCIATED** | 400         | El usuario no tiene tag asociado |
+| **INTERNAL_ERROR**    | 500         | Error interno del servidor       |
+
+---
