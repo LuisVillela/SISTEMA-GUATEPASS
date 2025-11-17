@@ -83,11 +83,14 @@ Notas:
 1. Obtener la URL del API:
    - Output `WebhookUrl` del stack (o usar `ApiUrl` + `/webhook/toll`).
    - Puedes obtenerlo con AWS CLI:
-     - aws cloudformation describe-stacks --stack-name guatepass-stack --query "Stacks[0].Outputs"
+     - ```JSON
+       aws cloudformation describe-stacks --stack-name guatepass-stack --query "Stacks[0].Outputs" ```
 
 2. Test rápido con curl (ejemplos):
 
-- Webhook con tag (POST /webhook/toll)
+- Webhook con tag
+```https
+(POST /webhook/toll)
   curl -X POST "<WEBHOOK_URL>" \
     -H "Content-Type: application/json" \
     -d '{
@@ -96,8 +99,10 @@ Notas:
       "tag_id": "TAG-001",
       "timestamp": "2025-11-14T10:30:00Z"
     }'
-
-- Webhook sin tag (POST /webhook/toll)
+  ```
+- Webhook sin tag
+``` https
+(POST /webhook/toll)
   curl -X POST "<WEBHOOK_URL>" \
     -H "Content-Type: application/json" \
     -d '{
@@ -105,12 +110,18 @@ Notas:
       "peaje_id": "PEAJE_ZONA10",
       "timestamp": "2025-11-14T10:30:00Z"
     }'
-
-- Historial de pagos (GET /history/payments/{placa})
+```
+- Historial de pagos
+``` https
+(GET /history/payments/{placa})
   curl -X GET "<API_BASE>/history/payments/P-123ABC"
+```
 
-- Historial de facturas (GET /history/invoices/{placa})
+- Historial de facturas
+```https
+(GET /history/invoices/{placa})
   curl -X GET "<API_BASE>/history/invoices/P-789GHI"
+```
 
 Ejemplos automáticos / colecciones:
 - Postman collection Transacciones: [tests/Testing Transacciones.postman_collection.json](tests/Testing Transacciones.postman_collection.json)
