@@ -38,6 +38,27 @@ Archivos relevantes:
      - Region: us-east-1
      - Environment: dev (por defecto)
    - La plantilla exporta la URL de la API en Outputs (`ApiUrl`, `WebhookUrl`).
+  
+   ``` samcli
+   --guided
+        Stack Name [guatepass-stack]:
+        AWS Region [us-east-1]: 
+        Parameter Environment [dev]: 
+        #Shows you resources changes to be deployed and require a 'Y' to initiate deploy
+        Confirm changes before deploy [y/N]: y
+        #SAM needs permission to be able to create roles to connect to the resources in your template
+        Allow SAM CLI IAM role creation [Y/n]: y
+        #Preserves the state of previously provisioned resources when an operation fails
+        Disable rollback [y/N]: y
+        WebhookValidatorFunction has no authentication. Is this okay? [y/N]: y
+        PaymentHistoryFunction has no authentication. Is this okay? [y/N]: y
+        InvoiceHistoryFunction has no authentication. Is this okay? [y/N]: y
+        TagsManagementFunction has no authentication. Is this okay? [y/N]: y
+        TagsManagementFunction has no authentication. Is this okay? [y/N]: y
+        TagsManagementFunction has no authentication. Is this okay? [y/N]: y
+        TagsManagementFunction has no authentication. Is this okay? [y/N]: y
+        Save arguments to configuration file [Y/n]: n
+   ```
 
 Archivo IaC principal: [template.yaml](template.yaml)
 
