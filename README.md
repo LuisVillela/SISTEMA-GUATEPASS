@@ -38,6 +38,7 @@ Archivos relevantes:
      - Region: us-east-1
      - Environment: dev (por defecto)
    - La plantilla exporta la URL de la API en Outputs (`ApiUrl`, `WebhookUrl`).
+   - De manera que se vea asi la configuracion:
   
    ``` samcli
    --guided
