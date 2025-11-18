@@ -28,6 +28,10 @@ def load_initial_data():
                 
             print(f"Columnas detectadas: {reader.fieldnames}")
             
+            # Verificar si existe la columna metodo_pago
+            has_metodo_pago = 'metodo_pago' in reader.fieldnames
+            print(f"Columna 'metodo_pago' encontrada: {has_metodo_pago}")
+            
             for row_num, row in enumerate(reader, 1):
                 # Limpiar y validar datos
                 placa = row['placa'].strip()
@@ -40,7 +44,7 @@ def load_initial_data():
                     print(f"Advertencia: Saldo inválido para {placa}, usando 0.0")
                     saldo = Decimal('0.0')
                 
-                # Preparar item para DynamoDB
+                # Preparar item base para DynamoDB
                 item = {
                     'placa': placa,
                     'nombre': nombre,
@@ -49,8 +53,15 @@ def load_initial_data():
                     'tipo_usuario': row['tipo_usuario'].strip(),
                     'tiene_tag': row['tiene_tag'].strip().lower() == 'true',
                     'tag_id': row['tag_id'].strip() if row['tag_id'].strip() else None,
-                    'metodo_pago' : row['metodo_pago'].strip() if row['metodo_pago'].strip() else None,
+                    'saldo_disponible': saldo
                 }
+                
+                # Agregar metodo_pago solo si existe la columna y tiene valor
+                if has_metodo_pago and row['metodo_pago'].strip():
+                    item['metodo_pago'] = row['metodo_pago'].strip()
+                else:
+                    # Si no existe la columna o está vacía, no agregar nada
+                    print(f"Info: No se agregó metodo_pago para {placa} (columna no existe o está vacía)")
                 
                 # Insertar en DynamoDB
                 table.put_item(Item=item)
