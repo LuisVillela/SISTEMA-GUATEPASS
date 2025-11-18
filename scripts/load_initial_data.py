@@ -6,7 +6,8 @@ import sys
 from decimal import Decimal
 
 def load_initial_data():
-    dynamodb = boto3.resource('dynamodb')
+    # Especificar región explícitamente
+    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
     
     table_name = 'guatepass-users-dev'
     
@@ -16,61 +17,70 @@ def load_initial_data():
         # Verificar que el archivo existe
         if not os.path.exists('data/clientes.csv'):
             print("ERROR: Archivo data/clientes.csv no encontrado")
+            print(f"Directorio actual: {os.getcwd()}")
             sys.exit(1)
         
         with open('data/clientes.csv', 'r', encoding='utf-8') as csvfile:
             reader = csv.DictReader(csvfile)
             
-            # Verificar que el CSV tiene las columnas esperadas
             if not reader.fieldnames:
                 print("ERROR: CSV vacío o sin columnas")
                 sys.exit(1)
                 
             print(f"Columnas detectadas: {reader.fieldnames}")
             
-            # Verificar si existe la columna metodo_pago
             has_metodo_pago = 'metodo_pago' in reader.fieldnames
             print(f"Columna 'metodo_pago' encontrada: {has_metodo_pago}")
             
             for row_num, row in enumerate(reader, 1):
-                # Limpiar y validar datos
-                placa = row['placa'].strip()
-                nombre = row['nombre'].strip()
-                
-                # Convertir saldo a Decimal (NO float)
                 try:
-                    saldo = Decimal(str(row['saldo_disponible']).strip())
-                except:
-                    print(f"Advertencia: Saldo inválido para {placa}, usando 0.0")
-                    saldo = Decimal('0.0')
-                
-                # Preparar item base para DynamoDB
-                item = {
-                    'placa': placa,
-                    'nombre': nombre,
-                    'email': row['email'].strip() if row['email'].strip() else None,
-                    'telefono': row['telefono'].strip() if row['telefono'].strip() else None,
-                    'tipo_usuario': row['tipo_usuario'].strip(),
-                    'tiene_tag': row['tiene_tag'].strip().lower() == 'true',
-                    'tag_id': row['tag_id'].strip() if row['tag_id'].strip() else None,
-                    'saldo_disponible': saldo
-                }
-                
-                # Agregar metodo_pago solo si existe la columna y tiene valor
-                if has_metodo_pago and row['metodo_pago'].strip():
-                    item['metodo_pago'] = row['metodo_pago'].strip()
-                else:
-                    # Si no existe la columna o está vacía, no agregar nada
-                    print(f"Info: No se agregó metodo_pago para {placa} (columna no existe o está vacía)")
-                
-                # Insertar en DynamoDB
-                table.put_item(Item=item)
-                print(f"[{row_num}] Cargado: {placa} - {nombre} - Saldo: {saldo}")
+                    placa = row['placa'].strip()
+                    nombre = row['nombre'].strip()
+                    
+                    if not placa:
+                        print(f"Advertencia: Placa vacía en fila {row_num}, saltando...")
+                        continue
+                    
+                    # Convertir saldo
+                    try:
+                        saldo = Decimal(str(row['saldo_disponible']).strip())
+                    except:
+                        saldo = Decimal('0.0')
+                    
+                    # Crear item
+                    item = {
+                        'placa': placa,
+                        'nombre': nombre,
+                        'email': row['email'].strip() or None,
+                        'telefono': row['telefono'].strip() or None,
+                        'tipo_usuario': row['tipo_usuario'].strip(),
+                        'tiene_tag': row['tiene_tag'].strip().lower() == 'true',
+                        'tag_id': row['tag_id'].strip() or None,
+                        'saldo_disponible': saldo
+                    }
+                    
+                    # Agregar metodo_pago si existe
+                    if has_metodo_pago and row['metodo_pago'].strip():
+                        item['metodo_pago'] = row['metodo_pago'].strip()
+                    else:
+                        print(f"Info: No se agregó metodo_pago para {placa}")
+                    
+                    # Insertar con manejo de errores específico
+                    table.put_item(Item=item)
+                    print(f"[{row_num}] Cargado: {placa} - {nombre} - Saldo: {saldo}")
+                    
+                except Exception as e:
+                    print(f"ERROR en fila {row_num}: {str(e)}")
+                    continue
         
-        print("\n¡Datos iniciales cargados exitosamente!")
+        print("\n¡Proceso completado!")
+        
+        # Verificar carga
+        response = table.scan(Select='COUNT')
+        print(f"Registros en tabla: {response['Count']}")
         
     except Exception as e:
-        print(f"Error cargando datos: {str(e)}")
+        print(f"Error general: {str(e)}")
         sys.exit(1)
 
 if __name__ == "__main__":

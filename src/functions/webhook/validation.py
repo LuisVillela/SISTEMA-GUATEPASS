@@ -98,7 +98,7 @@ class WebhookValidator:
                 return False, f"Tag ID not found: {tag_id}", None
             
             tag_info = response['Item']
-            placa = tag_info.get('placa_asociada')
+            placa = tag_info.get('placa')
             
             if not placa:
                 return False, f"Tag {tag_id} is not associated with any vehicle", None
@@ -131,7 +131,7 @@ class WebhookValidator:
                 return False, f"Tag is not active: {tag_id}", {}
             
             # Obtener la placa asociada al tag
-            tag_placa = tag_info.get('placa_asociada')
+            tag_placa = tag_info.get('placa')
             if not tag_placa:
                 return False, f"Tag {tag_id} is not associated with any vehicle", {}
             
